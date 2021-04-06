@@ -1,11 +1,13 @@
-import discord
 import telegram
 from discord.ext import commands
-from data.config import D_TOKEN, T_TOKEN, chat_id
+
 from data import db_session
 from data.channels import Chats
+from data.config import D_TOKEN, T_TOKEN, chat_id
 
-d_bot = commands.Bot(command_prefix='l!')  # Discord bot
+"""This bot take messages from selected channels and send messages from them to telegram"""
+
+d_bot = commands.Bot(command_prefix='L!')  # Discord bot
 t_bot = telegram.Bot(T_TOKEN)  # Telegram bot
 
 
@@ -36,6 +38,21 @@ async def on_ready():
             f'{guild.name}(id: {guild.id})')
 
 
+# @d_bot.command()
+# async def help(ctx):
+#    ctx.send('Команды\n\tl!set <канал>, чтобы бот просматривал этот канал'
+#             '\nl!del <канал>, чтобы бот перестал просматривать этот канал')
+
+
+@d_bot.event
+async def on_message(message):
+    """Function watch for messages in selected channel and send ones to telegram"""
+    chats = db_sess.query(Chats).filter(Chats.chan_id == message.channel.id).all()
+    if message.author != d_bot.user and chats:
+        send(message.content)
+    await d_bot.process_commands(message)
+
+
 @d_bot.command(name='del')
 async def del_bot(ctx, channel):
     """Function deletes channels from watched list"""
@@ -45,7 +62,7 @@ async def del_bot(ctx, channel):
         db_sess.commit()
         await ctx.send('Канал успешно убран')
     except Exception as e:
-        await ctx.send('Использование: l!set <канал> (с решёткой в начале)')
+        await ctx.send('Использование: L!set <канал> (с решёткой в начале)')
         print(e)
 
 
@@ -58,17 +75,8 @@ async def set_bot(ctx, channel):
         db_sess.commit()
         await ctx.send('Канал успешно сохранён')
     except Exception as e:
-        await ctx.send('Использование: l!set <канал> (с решёткой в начале)')
+        await ctx.send('Использование: L!set <канал> (с решёткой в начале)')
         print(e)
-
-
-@d_bot.event
-async def on_message(message):
-    """Function watch for messages in selected channel and send ones to telegram"""
-    chats = db_sess.query(Chats).filter(Chats.chan_id == message.channel.id).all()
-    if message.author != d_bot.user and chats:
-        send(message.content)
-    await d_bot.process_commands(message)
 
 
 if __name__ == '__main__':
