@@ -1,3 +1,3 @@
 T_TOKEN = '1722441647:AAEZuENbSwspuEsvex1Gq108_Ur6FiP9oTA'
-D_TOKEN = 'ODI4MjMwNDcwMTA5MzY0MjM1.YGmjuw.rBB3ydzQKaoAws7awv57pgF2PwM'
+D_TOKEN = 'NzE5MjI5MDIzODcxMzAzNjgw.Xt0YOQ.E703cAm5eGAxJw6rGQcqL_bxRNA'
 chat_id = '@hai_1'
