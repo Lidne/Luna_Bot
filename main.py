@@ -7,7 +7,7 @@ from data.config import D_TOKEN, T_TOKEN, chat_id
 
 """This bot take messages from selected channels and send messages from them to telegram"""
 
-d_bot = commands.Bot(command_prefix='!')  # Discord bot
+d_bot = commands.Bot(command_prefix='L!')  # Discord bot
 t_bot = telegram.Bot(T_TOKEN)  # Telegram bot
 
 
@@ -32,10 +32,9 @@ def send(message):
 async def on_ready():
     """Shows us connected Discord servers"""
     print(f'{d_bot.user} has connected to Discord!')
+    print('Connected to servers:')
     for guild in d_bot.guilds:
-        print(
-            f'{d_bot.user} connected to chats:\n'
-            f'{guild.name}(id: {guild.id})')
+        print(f'{guild.name}(id: {guild.id})')
 
 
 # @d_bot.command()
@@ -60,7 +59,7 @@ async def del_bot(ctx, channel):
         chan = db_sess.query(Channels).filter(Channels.chan_id == int(channel[2:-1])).first()
         if not chan:
             await ctx.send('Чат не найден')
-            raise ValueError
+            return
         db_sess.delete(chan)
         db_sess.commit()
         await ctx.send('Канал успешно убран')
@@ -74,7 +73,7 @@ async def set_bot(ctx, channel):
     """Function adds channel to a watched list"""
     try:
         chan = Channels(
-            chan_id=channel[2:-1],
+            chan_id=int(channel[2:-1]),
             chan_name=channel,
             server_id=ctx.guild.id
         )
@@ -97,11 +96,29 @@ async def chan_list(ctx):
         chan = db_sess.query(Channels.chan_name).filter(Channels.server_id == ctx.guild.id).all()
         if not chan:
             await ctx.send('На этом сервере нет отслеживаемых чатов')
+            return
         guilds = '\n'.join(list(map(lambda x: x[0], chan)))
         text = f'Отслеживаемые чаты на этом сервере:\n{guilds}'
         await ctx.send(text)
     except Exception as e:
         await ctx.send('Использование: L!list')
+        print(e)
+
+
+@d_bot.command('clear')
+async def chan_clear(ctx):
+    """Function deletes all channels (on this server) from the watched list"""
+    try:
+        chan = db_sess.query(Channels).filter(Channels.server_id == ctx.guild.id).all()
+        if not chan:
+            await ctx.send('На этом сервере нет отслеживаемых чатов')
+            return
+        for channel in chan:
+            db_sess.delete(channel)
+        db_sess.commit()
+        await ctx.send('Все каналы на этом сервере теперь не просматриваются')
+    except Exception as e:
+        await ctx.send('Использование: L!clear')
         print(e)
 
 
